@@ -989,172 +989,186 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
       }
     }
 
-    /* Board Canvas Engine */
-    const viewport = document.getElementById('boardViewport');
-    const canvas = document.getElementById('boardCanvas');
-    const clouds = Array.from(document.querySelectorAll('.cloud-wrapper'));
+    /* ============================================================
+   BOARD CANVAS ENGINE v2
+   Replace everything from "/* Board Canvas Engine */" down to and
+   including the  window.addEventListener('resize', ...)  block
+   with this file's contents. Everything else stays as-is.
+   ============================================================ */
 
-    let scale = 0.4;
-    let panX = 0, panY = 0;
-    let isDragging = false;
-    let startX = 0, startY = 0;
-    let initialPinchDist = null;
-    let initialScale = 1;
-    let pinchCenter = { x: 0, y: 0 };
+const viewport = document.getElementById('boardViewport');
+const canvas = document.getElementById('boardCanvas');
+const clouds = Array.from(document.querySelectorAll('.cloud-wrapper'));
 
-    function updateTransform() {
-      canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
-    }
+const MIN_SCALE = 0.25, MAX_SCALE = 1.6;
+let scale = 0.4, panX = 0, panY = 0;
 
-    function resetBoardView() {
-      canvas.classList.remove('spotlight-active');
-      clouds.forEach(c => c.classList.remove('highlighted'));
+const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
 
-      const vpW = window.innerWidth;
-      const vpH = window.innerHeight;
-      
-      scale = vpW < 600 ? Math.min(vpW / 1200, 0.38) : 0.45;
-      panX = (vpW / 2) - (1600 * scale);
-      panY = (vpH / 2) - (1600 * scale);
+/* Keep the middle of the screen inside the cloud cluster so you can
+   never drag yourself off into the empty void. */
+function clampPan() {
+  const cx = clamp((window.innerWidth / 2 - panX) / scale, 900, 2300);
+  const cy = clamp((window.innerHeight / 2 - panY) / scale, 1000, 2200);
+  panX = window.innerWidth / 2 - cx * scale;
+  panY = window.innerHeight / 2 - cy * scale;
+}
 
-      canvas.classList.remove('no-transition');
-      updateTransform();
-    }
+function apply(animated) {
+  clampPan();
+  canvas.classList.toggle('no-transition', !animated);
+  canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+}
 
-    /* Direct Constellation Lines: Center Node -> Each Cloud */
-    function drawConstellations() {
-      const svg = document.getElementById('constellationSvg');
-      svg.innerHTML = '';
+/* THE FIX: if a glide is mid-flight when you touch, read where the
+   canvas actually is right now and start from there, not from the
+   glide's destination. */
+function freeze() {
+  const m = new DOMMatrixReadOnly(getComputedStyle(canvas).transform);
+  if (!isFinite(m.a) || !isFinite(m.e)) return;
+  scale = m.a; panX = m.e; panY = m.f;
+  apply(false);
+}
 
-      const centerPoint = { x: 1600, y: 1600 };
+function exitSpotlight() {
+  canvas.classList.remove('spotlight-active');
+  clouds.forEach(c => c.classList.remove('highlighted'));
+}
 
-      clouds.forEach(c => {
-        const top = parseFloat(c.style.top) + (c.offsetHeight / 2 || 110);
-        const left = parseFloat(c.style.left) + (c.offsetWidth / 2 || 220);
+function resetBoardView() {
+  exitSpotlight();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  scale = vw < 600 ? 0.5 : 0.6;           /* bigger start so text is readable */
+  panX = vw / 2 - 1600 * scale;
+  panY = vh / 2 - 1600 * scale;
+  apply(true);
+}
 
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', centerPoint.x);
-        line.setAttribute('y1', centerPoint.y);
-        line.setAttribute('x2', left);
-        line.setAttribute('y2', top);
-        line.setAttribute('class', 'orbit-line');
-        svg.appendChild(line);
-      });
-    }
+function focusCloud(cloud) {
+  exitSpotlight();
+  canvas.classList.add('spotlight-active');
+  cloud.classList.add('highlighted');
 
-    let lastRandomIndex = -1;
-    function focusRandomCloud() {
-      if (clouds.length === 0) return;
+  const w = cloud.offsetWidth || 400, h = cloud.offsetHeight || 220;
+  const cx = parseFloat(cloud.style.left) + w / 2;
+  const cy = parseFloat(cloud.style.top) + h / 2;
 
-      let randomIndex;
-      do {
-        randomIndex = Math.floor(Math.random() * clouds.length);
-      } while (clouds.length > 1 && randomIndex === lastRandomIndex);
-      lastRandomIndex = randomIndex;
+  scale = Math.min(0.95, (window.innerWidth * 0.92) / w);   /* always fits */
+  panX = window.innerWidth / 2 - cx * scale;
+  panY = window.innerHeight / 2 - cy * scale;
+  apply(true);
+}
 
-      const targetCloud = clouds[randomIndex];
+/* Shuffled bag: visits every cloud once before repeating any. */
+let bag = [];
+function focusRandomCloud() {
+  if (!bag.length) bag = clouds.slice().sort(() => Math.random() - 0.5);
+  focusCloud(bag.pop());
+}
 
-      canvas.classList.add('spotlight-active');
-      clouds.forEach(c => c.classList.remove('highlighted'));
-      targetCloud.classList.add('highlighted');
+/* ---------- constellation lines (unchanged) ---------- */
+function drawConstellations() {
+  const svg = document.getElementById('constellationSvg');
+  svg.innerHTML = '';
+  clouds.forEach(c => {
+    const y = parseFloat(c.style.top) + (c.offsetHeight / 2 || 110);
+    const x = parseFloat(c.style.left) + (c.offsetWidth / 2 || 220);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', 1600); line.setAttribute('y1', 1600);
+    line.setAttribute('x2', x);    line.setAttribute('y2', y);
+    line.setAttribute('class', 'orbit-line');
+    svg.appendChild(line);
+  });
+}
 
-      const cloudTop = parseFloat(targetCloud.style.top);
-      const cloudLeft = parseFloat(targetCloud.style.left);
-      const cloudW = targetCloud.offsetWidth || 400;
-      const cloudH = targetCloud.offsetHeight || 220;
+/* ---------- gestures (Pointer Events: one code path for touch + mouse) ---------- */
+const pts = new Map();
+let gesture = null, moved = false, downAt = null;
 
-      const cloudCenterX = cloudLeft + (cloudW / 2);
-      const cloudCenterY = cloudTop + (cloudH / 2);
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
-      scale = 0.95;
-      panX = (window.innerWidth / 2) - (cloudCenterX * scale);
-      panY = (window.innerHeight / 2) - (cloudCenterY * scale);
+/* Re-anchor whenever the number of fingers changes, so lifting one
+   finger of a pinch can't make the view jump. */
+function startGesture() {
+  const p = [...pts.values()];
+  if (p.length === 1) gesture = { type: 'pan', lx: p[0].x, ly: p[0].y };
+  else if (p.length >= 2) {
+    const m = mid(p[0], p[1]);
+    gesture = { type: 'pinch', d: dist(p[0], p[1]) || 1, mx: m.x, my: m.y };
+  } else gesture = null;
+}
 
-      canvas.classList.remove('no-transition');
-      updateTransform();
-    }
+viewport.addEventListener('pointerdown', e => {
+  if (e.target.closest('.controls-bar, .next-nav-btn')) return;
+  freeze();
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pts.size === 1) { moved = false; downAt = { x: e.clientX, y: e.clientY, target: e.target }; }
+  startGesture();
+});
 
-    function zoomCanvasAtPoint(newScale, focalX, focalY) {
-      canvas.classList.add('no-transition');
-      newScale = Math.min(Math.max(0.2, newScale), 2.0);
-      panX = focalX - (focalX - panX) * (newScale / scale);
-      panY = focalY - (focalY - panY) * (newScale / scale);
-      scale = newScale;
-      updateTransform();
-    }
+window.addEventListener('pointermove', e => {
+  if (!pts.has(e.pointerId) || !gesture) return;
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const p = [...pts.values()];
 
-    viewport.addEventListener('mousedown', (e) => {
-      if (e.target.closest('.controls-bar') || e.target.closest('.next-nav-btn')) return;
-      canvas.classList.add('no-transition');
-      isDragging = true;
-      startX = e.clientX - panX;
-      startY = e.clientY - panY;
-    });
+  if (gesture.type === 'pan') {
+    if (!moved && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 8) return; /* tap dead-zone */
+    if (!moved) exitSpotlight();
+    moved = true;
+    panX += p[0].x - gesture.lx;
+    panY += p[0].y - gesture.ly;
+    gesture.lx = p[0].x; gesture.ly = p[0].y;
+  } else {
+    if (!moved) exitSpotlight();
+    moved = true;
+    const d = dist(p[0], p[1]), m = mid(p[0], p[1]);
+    const ns = clamp(scale * (d / gesture.d), MIN_SCALE, MAX_SCALE);
+    /* zoom around the previous midpoint, then follow the midpoint's movement */
+    panX = m.x - (gesture.mx - panX) * (ns / scale);
+    panY = m.y - (gesture.my - panY) * (ns / scale);
+    scale = ns; gesture.d = d; gesture.mx = m.x; gesture.my = m.y;
+  }
+  apply(false);
+});
 
-    window.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      panX = e.clientX - startX;
-      panY = e.clientY - startY;
-      updateTransform();
-    });
+function endPointer(e) {
+  if (!pts.has(e.pointerId)) return;
+  pts.delete(e.pointerId);
+  if (pts.size === 0 && !moved && e.type === 'pointerup') handleTap();
+  startGesture();
+}
+window.addEventListener('pointerup', endPointer);
+window.addEventListener('pointercancel', endPointer);
 
-    window.addEventListener('mouseup', () => { isDragging = false; });
+/* Tap a cloud = glide to it. Tap empty space = glide back out.
+   Tapping a song pill is left alone (it plays audio). */
+function handleTap() {
+  const t = downAt && downAt.target;
+  if (!t || t.closest('.cloud-song')) return;
+  const cloud = t.closest('.cloud-wrapper');
+  if (cloud) focusCloud(cloud);
+  else if (canvas.classList.contains('spotlight-active')) resetBoardView();
+}
 
-    viewport.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-      zoomCanvasAtPoint(scale * zoomFactor, e.clientX, e.clientY);
-    }, { passive: false });
+/* Mouse wheel / trackpad pinch: proportional to the actual delta, so
+   a trackpad can't fire 40 events and fling the zoom to the moon. */
+viewport.addEventListener('wheel', e => {
+  e.preventDefault();
+  freeze();
+  const ns = clamp(scale * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), MIN_SCALE, MAX_SCALE);
+  panX = e.clientX - (e.clientX - panX) * (ns / scale);
+  panY = e.clientY - (e.clientY - panY) * (ns / scale);
+  scale = ns;
+  apply(false);
+}, { passive: false });
 
-    viewport.addEventListener('touchstart', (e) => {
-      if (e.target.closest('.controls-bar') || e.target.closest('.next-nav-btn')) return;
-      canvas.classList.add('no-transition');
-      if (e.touches.length === 1) {
-        isDragging = true;
-        startX = e.touches[0].clientX - panX;
-        startY = e.touches[0].clientY - panY;
-      } else if (e.touches.length === 2) {
-        isDragging = false;
-        initialPinchDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        initialScale = scale;
-        pinchCenter = {
-          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
-          y: (e.touches[0].clientY + e.touches[1].clientY) / 2
-        };
-      }
-    }, { passive: true });
-
-    viewport.addEventListener('touchmove', (e) => {
-      if (isDragging && e.touches.length === 1) {
-        panX = e.touches[0].clientX - startX;
-        panY = e.touches[0].clientY - startY;
-        updateTransform();
-      } else if (e.touches.length === 2 && initialPinchDist) {
-        const currentDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        const currentCenter = {
-          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
-          y: (e.touches[0].clientY + e.touches[1].clientY) / 2
-        };
-        
-        const targetScale = initialScale * (currentDist / initialPinchDist);
-        zoomCanvasAtPoint(targetScale, currentCenter.x, currentCenter.y);
-      }
-    }, { passive: true });
-
-    viewport.addEventListener('touchend', () => {
-      isDragging = false;
-      initialPinchDist = null;
-    });
-
-    window.addEventListener('resize', () => {
-      drawConstellations();
-    });
+/* Android's address bar hiding changes the height; re-fit gently. */
+let resizeT;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeT);
+  resizeT = setTimeout(() => { drawConstellations(); apply(false); }, 150);
+});
 
     /* --- PAGE 4: AUTHENTIC DATA & CHAT STREAM --- */
     
