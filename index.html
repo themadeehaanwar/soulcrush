@@ -204,6 +204,110 @@
     }
     .nav-btn:active, .next-nav-btn:active { transform: scale(0.96); }
 
+    /* board hint (fades after first touch) */
+    .board-hint {
+      position: absolute; left: 22px; bottom: 36px; max-width: 55%; z-index: 40; pointer-events: none;
+      font-size: 0.68rem; letter-spacing: 3px; text-transform: uppercase; color: #f1e1ff;
+      animation: purpleWhiteBreathe 3s ease-in-out infinite; transition: opacity 0.6s ease;
+    }
+    .board-hint.gone { opacity: 0 !important; animation: none; }
+
+    /* --- PAGE 5: ENVELOPES --- */
+    .envelope-page {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100dvh; z-index: 160; overflow: hidden;
+      background: radial-gradient(circle at center, #1a0832 0%, #050109 100%);
+      opacity: 0; pointer-events: none; transition: opacity 0.8s ease;
+    }
+    .envelope-page.visible { opacity: 1; pointer-events: auto; }
+    .env-header { position: absolute; top: 0; left: 0; width: 100%; text-align: center; padding: 22px 15px; z-index: 40; pointer-events: none; }
+    .env-sub { font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; color: #f1e1ff; opacity: 0.75; }
+    .env-progress { margin-top: 8px; font-family: 'Cinzel', serif; font-size: 0.8rem; letter-spacing: 3px; color: #ff9db3; text-shadow: 0 0 10px rgba(255, 45, 85, 0.7); min-height: 1em; }
+    .env-stage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; --bw: 64px; }
+    .thread-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+
+    .env {
+      --w: var(--bw); position: absolute; width: var(--w); height: calc(var(--w) * 0.7);
+      translate: -50% -50%; scale: 1; transition: scale 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+      cursor: pointer; z-index: 5; -webkit-tap-highlight-color: transparent;
+    }
+    .env.special { --w: calc(var(--bw) * 1.3); }
+    .env.open { scale: 2; z-index: 30; pointer-events: none; }
+    .env.open.tied { scale: 1.35; z-index: 8; }
+    .env.special::after { content: '\2726'; position: absolute; top: -18px; right: -8px; font-size: 16px; color: #fff; text-shadow: 0 0 8px #f1e1ff, 0 0 14px #a855f7; animation: twinkle 2s ease-in-out infinite; pointer-events: none; }
+    @keyframes twinkle { 0%, 100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.15); } }
+
+    .env-in { position: relative; width: 100%; height: 100%; will-change: transform; animation: envFloat var(--dur, 6s) ease-in-out var(--dl, 0s) infinite alternate; }
+    @keyframes envFloat {
+      0% { transform: translate(0, 0) rotate(var(--r0, -3deg)); }
+      100% { transform: translate(var(--dx, 6px), var(--dy, -8px)) rotate(var(--r1, 3deg)); }
+    }
+    .env-in svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible; display: block; }
+    .e-body, .e-flap, .e-backflap { stroke-width: 2; stroke-linejoin: round; }
+    .e-fold { fill: none; stroke-width: 1.5; opacity: 0.5; stroke-linecap: round; }
+
+    .env-back { opacity: 0; transition: opacity 0.25s ease; }
+    .env.open .env-back { opacity: 1; }
+    .flap-front { transform-origin: 50px 10px; transition: transform 0.3s ease, opacity 0.3s ease; }
+    .env.open .flap-front { transform: scaleY(0); opacity: 0; }
+    .e-seal { transition: opacity 0.2s ease; }
+    .env.open .e-seal { opacity: 0; }
+
+    /* the card that slides out of the envelope */
+    .card-in {
+      position: absolute; left: 10%; width: 80%; top: 24%; height: 60%; border-radius: 5px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+      transform: translateY(0); transition: transform 0.65s cubic-bezier(0.2, 0.9, 0.3, 1.1) 0.12s;
+    }
+    .env.open .card-in { transform: translateY(-110%); }
+    .card-word { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: calc(var(--w) * 0.115); line-height: 1.2; letter-spacing: 0.2px; padding: 0 3px; }
+    .card-init { font-family: 'Cinzel', serif; font-size: calc(var(--w) * 0.085); margin-top: 3px; opacity: 0.8; }
+    .env-purple .card-in { background: #2d124d; border: 1px solid #c084fc; color: #f3e8ff; box-shadow: 0 0 10px rgba(192, 132, 252, 0.8); }
+    .env-purple .card-word { text-shadow: 0 0 6px rgba(192, 132, 252, 0.9); }
+    .env-white .card-in { background: #ffffff; border: 1px solid #e9d5ff; color: #240838; box-shadow: 0 0 12px rgba(241, 225, 255, 0.95); }
+
+    .env-purple .env-in svg { filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.85)); }
+    .env-purple .e-body { fill: #1a0832; stroke: #c084fc; }
+    .env-purple .e-flap { fill: #2d124d; stroke: #c084fc; }
+    .env-purple .e-backflap { fill: #12062a; stroke: #c084fc; }
+    .env-purple .e-fold { stroke: #c084fc; }
+    .env-purple .e-seal { fill: #f1e1ff; }
+    .env-white .env-in svg { filter: drop-shadow(0 0 6px rgba(241, 225, 255, 0.9)); }
+    .env-white .e-body { fill: #efe0ff; stroke: #ffffff; }
+    .env-white .e-flap { fill: #e2ccfb; stroke: #ffffff; }
+    .env-white .e-backflap { fill: #d6bdf5; stroke: #ffffff; }
+    .env-white .e-fold { stroke: #a855f7; }
+    .env-white .e-seal { fill: #a855f7; }
+    .env.selected .env-in svg { filter: drop-shadow(0 0 12px rgba(255, 255, 255, 1)); }
+    .env.tied .env-in svg { filter: drop-shadow(0 0 9px rgba(255, 45, 85, 0.95)); }
+
+    /* soulcrush: sealed until everything else has been opened */
+    .env.locked .env-in { opacity: 0.55; }
+    .env.locked .env-in svg { filter: drop-shadow(0 0 3px rgba(168, 85, 247, 0.5)); }
+    .env.locked::after { opacity: 0.35; animation: none; }
+    .env.ready .env-in svg { animation: readyPulse 1.8s ease-in-out infinite; }
+    @keyframes readyPulse {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.9)); }
+      50% { filter: drop-shadow(0 0 18px rgba(255, 255, 255, 1)) drop-shadow(0 0 28px rgba(168, 85, 247, 0.9)); }
+    }
+
+    .thread { fill: none; stroke: #ff2d55; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: drawThread 1.3s ease-in-out forwards; }
+    .thread-glow { fill: none; stroke: #ff2d55; stroke-width: 8; opacity: 0.35; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: drawThread 1.3s ease-in-out forwards; filter: blur(4px); }
+    @keyframes drawThread { to { stroke-dashoffset: 0; } }
+    .knot { fill: #ff2d55; filter: drop-shadow(0 0 6px #ff2d55); transform-box: fill-box; transform-origin: center; animation: knotPop 0.4s ease 1.2s both; }
+    @keyframes knotPop { from { transform: scale(0); } to { transform: scale(1); } }
+
+    .soul-banner {
+      position: fixed; left: 50%; top: 30%; transform: translate(-50%, -50%); z-index: 70; opacity: 0; pointer-events: none; white-space: nowrap;
+      font-family: 'Cinzel', serif; font-size: 1.9rem; letter-spacing: 6px; color: #ffffff;
+      text-shadow: 0 0 20px #f1e1ff, 0 0 45px #a855f7, 0 0 70px #ff2d55;
+    }
+    .spark { position: fixed; width: 6px; height: 6px; border-radius: 50%; z-index: 70; pointer-events: none; background: #fff; box-shadow: 0 0 10px #f1e1ff, 0 0 18px #ff2d55; }
+    .env-toast {
+      position: fixed; left: 50%; bottom: 42px; transform: translateX(-50%); z-index: 80; opacity: 0; pointer-events: none; white-space: nowrap;
+      padding: 10px 22px; border-radius: 24px; font-size: 0.78rem; letter-spacing: 2px; color: #f3e8ff;
+      background: rgba(25, 10, 45, 0.92); border: 1px solid rgba(192, 132, 252, 0.8); box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+    }
+
     /* --- PAGE 4: SCROLLING CHAT INTERFACE --- */
     .scroll-page {
       position: absolute; top: 0; left: 0; width: 100vw; height: 100dvh;
@@ -338,14 +442,7 @@
     <!-- PAGE 3: INFINITE CANVAS -->
     <div class="board-viewport" id="boardViewport">
 
-      <div class="controls-bar">
-        <button class="nav-btn" onclick="focusRandomCloud()">View Random</button>
-        <button class="nav-btn" onclick="resetBoardView()">Reset Position</button>
-      </div>
-
       <div class="board-canvas" id="boardCanvas">
-
-        <svg class="constellation-svg" id="constellationSvg"></svg>
 
         <div class="center-title-node" id="centerTitleNode">
           <h1 class="main-playlist-title">our shared playlist</h1>
@@ -466,6 +563,7 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
 
       </div>
 
+      <div class="board-hint" id="boardHint">tap a cloud</div>
       <button class="next-nav-btn" onclick="goToNextPage()">NEXT &#10140;</button>
 
     </div>
@@ -493,6 +591,19 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
           <button class="chat-send-btn" id="chatSendBtn" onclick="handleSendClick()">Send</button>
         </div>
       </div>
+    </div>
+
+    <!-- PAGE 5: ENVELOPES -->
+    <div class="envelope-page" id="envelopePage">
+      <div class="env-header">
+        <h2 class="header-title">What We Call Each Other</h2>
+        <p class="env-sub">open an envelope &middot; find its match</p>
+        <p class="env-progress" id="envProgress"></p>
+      </div>
+      <div class="env-stage" id="envStage"></div>
+      <svg class="thread-svg" id="threadSvg"></svg>
+      <div class="soul-banner" id="soulBanner">my soulcrush</div>
+      <div class="env-toast" id="envToast"></div>
     </div>
 
   </div>
@@ -547,7 +658,7 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
       setTimeout(() => {
         innerWorld.classList.remove('visible');
         boardViewport.classList.add('visible');
-        drawConstellations();
+        layoutClouds();
         resetBoardView();
       }, 600);
     }
@@ -589,8 +700,8 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
 
     /* Keep the middle of the screen inside the cloud cluster. */
     function clampPan() {
-      const cx = clamp((window.innerWidth / 2 - panX) / scale, 900, 2300);
-      const cy = clamp((window.innerHeight / 2 - panY) / scale, 1000, 2200);
+      const cx = clamp((window.innerWidth / 2 - panX) / scale, bounds.x0, bounds.x1);
+      const cy = clamp((window.innerHeight / 2 - panY) / scale, bounds.y0, bounds.y1);
       panX = window.innerWidth / 2 - cx * scale;
       panY = window.innerHeight / 2 - cy * scale;
     }
@@ -620,8 +731,8 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
       exitSpotlight();
       const vw = window.innerWidth, vh = window.innerHeight;
       scale = vw < 600 ? 0.5 : 0.6;
-      panX = vw / 2 - 1600 * scale;
-      panY = vh / 2 - 1600 * scale;
+      panX = vw / 2 - home.x * scale;
+      panY = vh / 2 - home.y * scale;
       apply(true);
     }
 
@@ -640,25 +751,77 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
       apply(true);
     }
 
-    /* Shuffled bag: visits every cloud once before repeating any. */
-    let bag = [];
-    function focusRandomCloud() {
-      if (!bag.length) bag = clouds.slice().sort(() => Math.random() - 0.5);
-      focusCloud(bag.pop());
+    /* ---------- organic cloud layout ---------- */
+    const LAYOUT_SEED = 12;   /* change this number for a different arrangement */
+    let bounds = { x0: 900, x1: 2300, y0: 1000, y1: 2200 };
+    let home = { x: 1600, y: 1600 };
+
+    function mulberry32(a) {
+      return function () {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
     }
 
-    function drawConstellations() {
-      const svg = document.getElementById('constellationSvg');
-      svg.innerHTML = '';
+    /* Each cloud is sized to its text, then packed on an outward spiral.
+       Purple and white clouds are placed alternately, and each one picks the
+       spot that is far from its own colour and close to the other colour. */
+    function layoutClouds() {
+      const rnd = mulberry32(LAYOUT_SEED);
+      const isJ = c => c.classList.contains('cloud-purple');
       clouds.forEach(c => {
-        const y = parseFloat(c.style.top) + (c.offsetHeight / 2 || 110);
-        const x = parseFloat(c.style.left) + (c.offsetWidth / 2 || 220);
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', 1600); line.setAttribute('y1', 1600);
-        line.setAttribute('x2', x);    line.setAttribute('y2', y);
-        line.setAttribute('class', 'orbit-line');
-        svg.appendChild(line);
+        const n = c.querySelector('.cloud-text').textContent.trim().length;
+        c.style.width = Math.round(clamp(250 + n, 330, 470) * (0.94 + rnd() * 0.12)) + 'px';
       });
+
+      const bySize = (a, b) => b.offsetWidth * b.offsetHeight - a.offsetWidth * a.offsetHeight;
+      const pu = clouds.filter(isJ).sort(bySize), wh = clouds.filter(c => !isJ(c)).sort(bySize);
+      const order = [];
+      for (let i = 0; i < Math.max(pu.length, wh.length); i++) {
+        const pair = rnd() < 0.5 ? [pu[i], wh[i]] : [wh[i], pu[i]];
+        pair.forEach(c => { if (c) order.push(c); });
+      }
+
+      const GAP = 40;
+      const placed = [{ x: 1300, y: 1510, w: 600, h: 180, title: true }];   /* keeps the title clear */
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+
+      order.forEach(c => {
+        const w = c.offsetWidth, h = c.offsetHeight, mine = isJ(c);
+        let ang = rnd() * Math.PI * 2, r = 120, firstR = null;
+        const cands = [];
+        for (let k = 0; k < 4000 && cands.length < 10; k++) {
+          if (firstR !== null && r > firstR + 280) break;
+          const x = 1600 + Math.cos(ang) * r * 1.15 - w / 2;
+          const y = 1600 + Math.sin(ang) * r - h / 2;
+          const hit = placed.some(p => x < p.x + p.w + GAP && x + w + GAP > p.x && y < p.y + p.h + GAP && y + h + GAP > p.y);
+          if (!hit) { if (firstR === null) firstR = r; cands.push({ x, y, r }); }
+          ang += 2.39996; r += 2.5;
+        }
+        let best = cands[0] || { x: 1600 - w / 2, y: 1600 - h / 2, r: 0 }, bestScore = -Infinity;
+        cands.forEach(cd => {
+          const cx = cd.x + w / 2, cy = cd.y + h / 2;
+          let same = 700, opp = 700;
+          placed.forEach(p => {
+            if (p.title) return;
+            const d = Math.hypot(p.x + p.w / 2 - cx, p.y + p.h / 2 - cy);
+            if (p.j === mine) same = Math.min(same, d); else opp = Math.min(opp, d);
+          });
+          const score = same - 0.4 * opp - 0.2 * cd.r;
+          if (score > bestScore) { bestScore = score; best = cd; }
+        });
+
+        c.style.left = Math.round(best.x) + 'px';
+        c.style.top = Math.round(best.y) + 'px';
+        placed.push({ x: best.x, y: best.y, w, h, j: mine });
+        x0 = Math.min(x0, best.x); y0 = Math.min(y0, best.y);
+        x1 = Math.max(x1, best.x + w); y1 = Math.max(y1, best.y + h);
+      });
+
+      bounds = { x0, x1, y0, y1 };
+      home = { x: (x0 + x1) / 2, y: (y0 + y1) / 2 };
     }
 
     /* Gestures: Pointer Events for touch + mouse */
@@ -680,6 +843,7 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
 
     viewport.addEventListener('pointerdown', e => {
       if (e.target.closest('.controls-bar, .next-nav-btn')) return;
+      document.getElementById('boardHint').classList.add('gone');
       freeze();
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pts.size === 1) { moved = false; downAt = { x: e.clientX, y: e.clientY, target: e.target }; }
@@ -741,7 +905,7 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
     let resizeT;
     window.addEventListener('resize', () => {
       clearTimeout(resizeT);
-      resizeT = setTimeout(() => { drawConstellations(); apply(false); }, 150);
+      resizeT = setTimeout(() => { apply(false); }, 150);
     });
 
     /* ---------- PAGE 4: CHAT STREAM ---------- */
@@ -810,8 +974,226 @@ Tum aadat bano hamaari, hum bigad jaayenge</div>
         sendBtn.textContent = "Next";
         isSentState = true;
       } else {
-        alert("End of current section!");
+        goToEnvelopes();
       }
+    }
+    /* ---------- PAGE 5: ENVELOPES ---------- */
+    /* EDIT HERE. Every word in SHARED_WORDS becomes a purple envelope AND a white one
+       (a matching pair = red string of fate). Add a word once and both appear.
+       BLANK_WHITE = how many empty white envelopes to leave for her to name later. */
+    const SHARED_WORDS = ['my soul', 'my world', 'my beloved', 'my lover', 'my wife', 'my everything', 'my partner', 'meri jaan', 'jaanu', 'jaani', 'biwi'];
+    const BLANK_WHITE = 0;
+    const SPECIAL_WORD = 'my soulcrush';   /* purple only, and always the very last one to open */
+    const ENV_SEED = 11;
+    const SVGNS = 'http://www.w3.org/2000/svg';
+
+    let envBuilt = false, lastOpened = null, tickOn = false;
+    const links = [], envs = [];
+
+    function goToEnvelopes() {
+      const sp = document.getElementById('scrollPage');
+      const ep = document.getElementById('envelopePage');
+      sp.style.opacity = '0';
+      setTimeout(() => {
+        sp.classList.remove('visible');
+        sp.style.opacity = '';
+        ep.classList.add('visible');
+        buildEnvelopes();
+      }, 600);
+    }
+
+    /* back flap (behind the card) / the card / front of the envelope (in front of the card) */
+    function envHTML(word, color) {
+      return '<div class="env-in">' +
+        '<svg class="env-back" viewBox="0 0 100 70"><path class="e-backflap" d="M4 10 L50 -26 L96 10 Z"/></svg>' +
+        '<div class="card-in"><div class="card-word">' + (word || '') + '</div><div class="card-init">~' + (color === 'purple' ? 'J' : 'M') + '</div></div>' +
+        '<svg class="env-front" viewBox="0 0 100 70"><rect class="e-body" x="4" y="10" width="92" height="56" rx="6"/>' +
+        '<path class="e-fold" d="M6 62 L40 38 M94 62 L60 38"/>' +
+        '<path class="e-flap flap-front" d="M4 10 L96 10 L50 44 Z"/>' +
+        '<circle class="e-seal" cx="50" cy="40" r="4.5"/></svg></div>';
+    }
+
+    function buildEnvelopes() {
+      if (envBuilt) return;
+      envBuilt = true;
+      const stage = document.getElementById('envStage');
+      const W = stage.clientWidth, H = stage.clientHeight;
+      const rnd = mulberry32(ENV_SEED);
+
+      const items = [];
+      SHARED_WORDS.forEach(w => { items.push({ color: 'purple', word: w }); items.push({ color: 'white', word: w }); });
+      for (let i = 0; i < BLANK_WHITE; i++) items.push({ color: 'white', word: '' });
+      items.push({ color: 'purple', word: SPECIAL_WORD, special: true });
+
+      /* envelope size that lets everything fit on this screen */
+      const yMin = 150, yMax = H - 60;
+      const area = (W - 140) * (yMax - yMin);
+      const bw = clamp(Math.sqrt(0.36 * area / (0.7 * items.length)), 52, 84);
+      stage.style.setProperty('--bw', bw.toFixed(1) + 'px');
+      const padX = bw + 8;
+
+      /* random scatter with no overlaps (the soulcrush envelope sits in the middle) */
+      const rects = [];
+      const fits = (x, y, w, h, m) => !rects.some(r => Math.abs(x - r.x) < (w + r.w) / 2 + m && Math.abs(y - r.y) < (h + r.h) / 2 + m);
+      function place(w, h) {
+        for (let m = 16; m >= -12; m -= 4) {
+          for (let k = 0; k < 250; k++) {
+            const x = padX + rnd() * (W - 2 * padX), y = yMin + rnd() * (yMax - yMin);
+            if (fits(x, y, w, h, m)) { rects.push({ x, y, w, h }); return { x, y }; }
+          }
+        }
+        const x = padX + rnd() * (W - 2 * padX), y = yMin + rnd() * (yMax - yMin);
+        rects.push({ x, y, w, h });
+        return { x, y };
+      }
+
+      items.sort((a, b) => (b.special ? 1 : 0) - (a.special ? 1 : 0));   /* special first */
+      items.forEach(it => {
+        const w = it.special ? bw * 1.3 : bw, h = w * 0.7;
+        let pos;
+        if (it.special) { pos = { x: W / 2, y: (yMin + yMax) / 2 }; rects.push({ x: pos.x, y: pos.y, w, h }); }
+        else pos = place(w, h);
+
+        const el = document.createElement('div');
+        el.className = 'env env-' + it.color + (it.special ? ' special locked' : '');
+        el.style.left = (pos.x / W * 100) + '%';
+        el.style.top = (pos.y / H * 100) + '%';
+        el.style.setProperty('--dx', (rnd() * 12 - 6).toFixed(1) + 'px');
+        el.style.setProperty('--dy', (-3 - rnd() * 8).toFixed(1) + 'px');
+        el.style.setProperty('--r0', (rnd() * 6 - 3).toFixed(1) + 'deg');
+        el.style.setProperty('--r1', (rnd() * 6 - 3).toFixed(1) + 'deg');
+        el.style.setProperty('--dur', (5 + rnd() * 4).toFixed(1) + 's');
+        el.style.setProperty('--dl', (-rnd() * 6).toFixed(1) + 's');
+        el.innerHTML = envHTML(it.word, it.color);
+
+        const obj = { el, color: it.color, word: it.word, special: !!it.special, locked: !!it.special, opened: false, matched: false };
+        el.addEventListener('click', () => openEnv(obj));
+        stage.appendChild(el);
+        envs.push(obj);
+      });
+      updateProgress();
+    }
+
+    function centerOf(o) {
+      const r = o.el.querySelector('.env-in').getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }
+
+    function openEnv(o) {
+      if (o.locked) { lockedTap(o); return; }
+      if (o.el.classList.contains('open')) return;
+      const prev = lastOpened;
+      o.opened = true;
+      o.el.classList.add('open');
+
+      if (prev && prev !== o && prev.color !== o.color && o.word && prev.word === o.word && !prev.matched && !o.matched) {
+        /* a pair: both stay open, the string ties them together */
+        prev.el.classList.remove('selected');
+        lastOpened = null;
+        setTimeout(() => tieThread(prev, o), 700);
+      } else {
+        /* not a pair: the earlier card tucks back in, this one waits for its match */
+        if (prev && !prev.matched) prev.el.classList.remove('open', 'selected');
+        lastOpened = o;
+        o.el.classList.add('selected');
+      }
+      if (o.special) celebrate(o);
+      checkUnlock();
+    }
+
+    /* soulcrush stays sealed until every other envelope has been opened at least once */
+    function checkUnlock() {
+      const sp = envs.find(e => e.special);
+      if (!sp || !sp.locked) return;
+      if (envs.every(e => e.special || e.opened)) {
+        sp.locked = false;
+        sp.el.classList.remove('locked');
+        sp.el.classList.add('ready');
+        setTimeout(() => toast('the last one is waiting \u2726'), 900);
+      }
+    }
+
+    function lockedTap(o) {
+      const left = envs.filter(e => !e.special && !e.opened).length;
+      o.el.animate([
+        { transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' },
+        { transform: 'translateX(-4px)' }, { transform: 'translateX(0)' }
+      ], { duration: 350 });
+      toast(left + ' more to open first \u2726');
+    }
+
+    function toast(msg) {
+      const t = document.getElementById('envToast');
+      t.textContent = msg;
+      t.getAnimations().forEach(a => a.cancel());
+      t.animate([
+        { opacity: 0, transform: 'translateX(-50%) translateY(8px)' },
+        { opacity: 1, transform: 'translateX(-50%) translateY(0)', offset: 0.15 },
+        { opacity: 1, transform: 'translateX(-50%) translateY(0)', offset: 0.8 },
+        { opacity: 0, transform: 'translateX(-50%) translateY(0)' }
+      ], { duration: 2200 });
+    }
+
+    function tieThread(a, b) {
+      a.matched = b.matched = true;
+      a.el.classList.add('tied'); b.el.classList.add('tied');
+      a.el.classList.remove('selected'); b.el.classList.remove('selected');
+      const svg = document.getElementById('threadSvg');
+      const mk = (tag, cls) => { const n = document.createElementNS(SVGNS, tag); n.setAttribute('class', cls); svg.appendChild(n); return n; };
+      const glow = mk('path', 'thread-glow'), path = mk('path', 'thread');
+      glow.setAttribute('pathLength', '1'); path.setAttribute('pathLength', '1');
+      const ka = mk('circle', 'knot'), kb = mk('circle', 'knot');
+      ka.setAttribute('r', '4.5'); kb.setAttribute('r', '4.5');
+      links.push({ a, b, path, glow, ka, kb, t: Math.random() * 6 });
+      startTick();
+      updateProgress();
+    }
+
+    /* the string follows the floating envelopes and gently sways */
+    function startTick() { if (!tickOn) { tickOn = true; requestAnimationFrame(tick); } }
+    function tick(ts) {
+      links.forEach(l => {
+        const p = centerOf(l.a), q = centerOf(l.b);
+        const droop = Math.min(90, Math.hypot(q.x - p.x, q.y - p.y) * 0.25) + Math.sin(ts / 700 + l.t) * 8;
+        const d = 'M' + p.x + ' ' + p.y + ' Q' + ((p.x + q.x) / 2) + ' ' + ((p.y + q.y) / 2 + droop) + ' ' + q.x + ' ' + q.y;
+        l.path.setAttribute('d', d); l.glow.setAttribute('d', d);
+        l.ka.setAttribute('cx', p.x); l.ka.setAttribute('cy', p.y);
+        l.kb.setAttribute('cx', q.x); l.kb.setAttribute('cy', q.y);
+      });
+      requestAnimationFrame(tick);
+    }
+
+    function updateProgress() {
+      const total = SHARED_WORDS.length;
+      document.getElementById('envProgress').textContent =
+        links.length >= total ? 'every thread tied \u2661' : links.length + ' / ' + total + ' threads tied';
+    }
+
+    /* the finale: only for the soulcrush envelope */
+    function celebrate(o) {
+      setTimeout(() => {
+        const c = centerOf(o);
+        const page = document.getElementById('envelopePage');
+        for (let i = 0; i < 30; i++) {
+          const s = document.createElement('div');
+          s.className = 'spark';
+          s.style.left = c.x + 'px'; s.style.top = c.y + 'px';
+          page.appendChild(s);
+          const ang = Math.random() * Math.PI * 2, d = 70 + Math.random() * 130;
+          const an = s.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: 'translate(' + Math.cos(ang) * d + 'px, ' + Math.sin(ang) * d + 'px) scale(0)', opacity: 0 }
+          ], { duration: 1100 + Math.random() * 700, easing: 'ease-out' });
+          an.onfinish = () => s.remove();
+        }
+        document.getElementById('soulBanner').animate([
+          { opacity: 0, transform: 'translate(-50%, -50%) scale(0.8)' },
+          { opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: 0.25 },
+          { opacity: 1, transform: 'translate(-50%, -50%) scale(1)', offset: 0.75 },
+          { opacity: 0, transform: 'translate(-50%, -50%) scale(1.1)' }
+        ], { duration: 3200, easing: 'ease-in-out' });
+        document.getElementById('envProgress').textContent = 'the one only I call you \u2661';
+      }, 700);
     }
   </script>
 </body>
